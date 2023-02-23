@@ -9,30 +9,31 @@ import aiofiles
 async def image_save_file(images: list[UploadFile] = File(...)) -> list[ImageMediaBase]:
     image_to_db = []
     for image in images:
-        try:
-            FILE_PATH = f"{str(settings.BASE_DIR)}{settings.ASSETS}"
-            filename = image.filename
-            extension = filename.split('.')[1]
 
-            if extension not in ['jpg', 'png']:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"message": "File extension not allowed"})
+        FILE_PATH = f"{str(settings.BASE_DIR)}{settings.ASSETS}"
+        filename = image.filename
+        extension = filename.split('.')[1]
 
-            image_token_name = f"{secrets.token_hex(10)}.{extension}"
-            generated_name = FILE_PATH + image_token_name
-            file_content = await image.read()
+        if extension not in ['jpg', 'png', 'jpeg', 'webp', 'bmp', 'mp4',
+                         'mov', 'wmv', 'avi', 'webm', 'mpeg-2', 'mkv', 'flv', 'f4v', 'swf', 'avif']:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"message": "File extension not allowed"})
 
-            async with aiofiles.open(generated_name, 'wb') as f:
-                await f.write(file_content)
+        image_token_name = f"{secrets.token_hex(10)}.{extension}"
+        generated_name = FILE_PATH + image_token_name
+        file_content = await image.read()
 
-            file_url = f"{settings.ASSETS}{image_token_name}"
+        async with aiofiles.open(generated_name, 'wb') as f:
+            await f.write(file_content)
 
-            image_to_db.append(
-                ImageMediaBase(
-                    file_name=file_url,
-                    file_content=hashlib.sha256(file_content).hexdigest(),
-                    file_ext=extension
-                ))
-        except Exception as e:
-            print(e)
-            raise HTTPException(detail={"message": "Error while image uploading"}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        file_url = f"{settings.ASSETS}{image_token_name}"
+
+        image_to_db.append(
+            ImageMediaBase(
+                file_name=file_url,
+                file_content=hashlib.sha256(file_content).hexdigest(),
+                file_ext=extension
+            ))
+
+
+        # raise HTTPException(detail={"message": "Error while image uploading"}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     return image_to_db

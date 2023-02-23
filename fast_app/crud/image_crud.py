@@ -19,7 +19,7 @@ class CRUDImage(CRUDBase[ImageMedia, ImageMediaCreate, ImageMediaUpdate]):
         return image.scalar_one_or_none()
 
     async def create_image(
-            self, *, track: Track, images: list[ImageMediaBase], track_id: int, db_session: Optional[AsyncSession] = None
+            self, *, images: list[ImageMediaBase], track_id: int, db_session: Optional[AsyncSession] = None
     ) -> None:
         db_session = db_session or db.session
         for image in images:
@@ -28,6 +28,20 @@ class CRUDImage(CRUDBase[ImageMedia, ImageMediaCreate, ImageMediaUpdate]):
             db.session.add(db_obj)
             await db.session.commit()
             await db.session.refresh(db_obj)
+
+
+    async def create_image_while_update(
+            self, *, images: list[ImageMediaBase], track_id: int, db_session: Optional[AsyncSession] = None
+    ) -> ImageMedia:
+        db_session = db_session or db.session
+        for image in images:
+            db_obj = ImageMedia.from_orm(image)
+            db_obj.track_id = track_id
+            db.session.add(db_obj)
+            await db.session.commit()
+            await db.session.refresh(db_obj)
+            return db_obj
+
 
     async def get_all_images(
             self,

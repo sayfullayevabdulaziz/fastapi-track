@@ -64,7 +64,7 @@ async def create_track(
         # save image to local and pydantic obj
         image_saved_to_local_file_n_db = await image_save_file(images=images)
         # save image to db
-        await crud.image.create_image(track=track_id, images=image_saved_to_local_file_n_db, track_id=track_id.id)
+        await crud.image.create_image(images=image_saved_to_local_file_n_db, track_id=track_id.id)
         # get images where track_id=track_id.id
         image_list = await crud.image.get_all_images(track_id=track_id.id)
 
@@ -74,6 +74,22 @@ async def create_track(
 
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"message": "Image not uploaded"})
+
+
+@router.post("/image/{track_id}")
+async def image_update(
+        track_id: int,
+        image: list[UploadFile] = File(...),
+        current_user: User = Depends(deps.get_current_user(required_roles=[RoleEnum.admin, RoleEnum.manager]))
+) -> PostResponseBase[ImageMedia]:
+    current_track = await crud.track.get(id=track_id)
+    if not current_track:
+        raise IdNotFoundException(Track, track_id)
+
+    image_saved_to_local_file_n_db = await image_save_file(images=image)
+    image_obj = await crud.image.create_image_while_update(images=image_saved_to_local_file_n_db, track_id=track_id)
+
+    return create_response(data=image_obj)
 
 
 @router.put("/{track_id}")
@@ -108,6 +124,28 @@ async def update_is_active(
     track_update_is_active = await crud.track.update(obj_new=new_obj, obj_current=current_track)
     return create_response(data=track_update_is_active)
 
+
+@router.delete("/image/{track_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def image_remove(
+        track_id: int,
+        image_id: int = Body(embed=True),
+        current_user: User = Depends(
+            deps.get_current_user(required_roles=[RoleEnum.admin, RoleEnum.manager])
+        ),
+):
+    track = await crud.track.get(id=track_id)
+    if not track:
+        raise IdNotFoundException(Track, id=track_id)
+    image_ids = [images_id.id for images_id in track.images]
+
+
+    if image_id in image_ids:
+        await crud.image.remove(id=image_id)
+    else:
+        raise IdNotFoundException(ImageMedia, id=image_id)
+
+
+
 @router.delete("/{track_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_track(
         track_id: int,
@@ -126,23 +164,3 @@ async def remove_track(
     # return {"msg": "Deleted"}
 
 
-@router.delete("/{track_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def image_remove(
-        track_id: int,
-        image_id: int = Body(embed=True),
-        current_user: User = Depends(
-            deps.get_current_user(required_roles=[RoleEnum.admin, RoleEnum.manager])
-        ),
-):
-    track = await crud.track.get(id=track_id)
-    if not track:
-        raise IdNotFoundException(Track, id=track_id)
-    print(track)
-    for image in track.images:
-        print(image)
-        if image.id == image_id:
-            print(image_id)
-            pass
-            # await crud.image.remove(id=image_id)
-        else:
-            raise IdNotFoundException(ImageMedia, id=image_id)

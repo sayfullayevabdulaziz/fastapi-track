@@ -122,13 +122,13 @@ async def create_user(
     return create_response(data=user)
 
 
-@router.delete("/{user_id}")
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_user(
         user_id: int,
         current_user: User = Depends(
             deps.get_current_user(required_roles=[RoleEnum.admin])
         ),
-) -> DeleteResponseBase[UserRead]:
+):
     """
     Deletes a user by his/her id
     """
@@ -140,4 +140,3 @@ async def remove_user(
         raise UserSelfDeleteException()
 
     user = await crud.user.remove(id=user_id)
-    return create_response(data=user)

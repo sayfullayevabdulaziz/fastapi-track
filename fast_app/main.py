@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi_async_sqlalchemy import SQLAlchemyMiddleware
 from fastapi_async_sqlalchemy import db
+from fastapi_pagination import add_pagination
 from sqlmodel import text
 from starlette.middleware.cors import CORSMiddleware
 
@@ -71,7 +72,7 @@ async def on_startup():
 
 # Add Routers
 app.include_router(api_router_v1, prefix=settings.API_V1_STR)
-
+add_pagination(app)
 
 # FOR LOCAL
 # if __name__ == "__main__":

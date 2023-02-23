@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     POOL_SIZE = max(DB_POOL_SIZE // WEB_CONCURRENCY, 5)
 
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 10  # 10 days
 
     SECRET_KEY: str

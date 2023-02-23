@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Optional
+
 from fast_app.models.blog_model import BlogBase
 from fast_app.utils.partial import optional
 
@@ -13,4 +16,5 @@ class BlogUpdate(BlogBase):
 
 
 class BlogRead(BlogBase):
-    pass
+    id: int
+    created_at: Optional[datetime]
