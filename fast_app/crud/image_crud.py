@@ -35,7 +35,7 @@ class CRUDImage(CRUDBase[ImageMedia, ImageMediaCreate, ImageMediaUpdate]):
     ) -> ImageMedia:
         db_session = db_session or db.session
         for image in images:
-            db_obj = ImageMedia.from_orm(image)
+            db_obj = ImageMedia.from_orm(image, update={"track_id": track_id})
             db_obj.track_id = track_id
             db.session.add(db_obj)
             await db.session.commit()
